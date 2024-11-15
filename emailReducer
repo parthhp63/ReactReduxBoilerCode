@@ -1,0 +1,86 @@
+// src/redux/reducers/emailReducer.js
+import { createSlice } from "@reduxjs/toolkit";
+
+const initialState = {
+  emailList: [],
+  loading: false,
+  error: null,
+  status: "idle",
+  message: null,
+};
+
+const emailSlice = createSlice({
+  name: "email",
+  initialState,
+  reducers: {
+    loadEmailsRequest: (state) => {
+      state.status = "loading";
+      state.loading = true;
+    },
+    loadEmailsSuccess: (state, action) => {
+      state.status = "succeeded";
+      state.loading = false;
+      state.emailList = action.payload;
+    },
+    loadEmailsFail: (state, action) => {
+      state.status = "failed";
+      state.loading = false;
+      state.error = action.payload;
+    },
+
+    addEmailRequest: (state) => {
+      state.status = "loading";
+      state.loading = true;
+    },
+    addEmailSuccess: (state, action) => {
+      state.status = "succeeded";
+      state.loading = false;
+      state.emailList = action.payload;
+      state.message = "Email added successfully.";
+    },
+    addEmailFail: (state, action) => {
+      state.status = "failed";
+      state.loading = false;
+      state.error = action.payload;
+    },
+
+    removeEmailRequest: (state) => {
+      state.status = "loading";
+      state.loading = true;
+    },
+    removeEmailSuccess: (state, action) => {
+      state.status = "succeeded";
+      state.loading = false;
+      state.emailList = action.payload;
+      state.message = "Email removed successfully.";
+    },
+    removeEmailFail: (state, action) => {
+      state.status = "failed";
+      state.loading = false;
+      state.error = action.payload;
+    },
+
+    clearError: (state) => {
+      state.error = null;
+    },
+    clearMessage: (state) => {
+      state.message = null;
+    },
+  },
+});
+
+export const {
+  loadEmailsRequest,
+  loadEmailsSuccess,
+  loadEmailsFail,
+  addEmailRequest,
+  addEmailSuccess,
+  addEmailFail,
+  removeEmailRequest,
+  removeEmailSuccess,
+  removeEmailFail,
+  clearError,
+  clearMessage,
+} = emailSlice.actions;
+
+export default emailSlice.reducer;
