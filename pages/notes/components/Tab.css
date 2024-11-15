@@ -1,0 +1,16 @@
+.TabScroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.TabScroll::-webkit-scrollbar-thumb {
+  background: #6c63ff;
+  border-radius: 5px;
+}
+
+.TabScroll::-webkit-scrollbar-thumb:hover {
+  background: #5b54d6;
+}
+.TabScroll {
+  scrollbar-width: thin;
+  scrollbar-color: #6c63ff #f1f1f1;
+}

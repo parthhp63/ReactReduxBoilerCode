@@ -1,0 +1,23 @@
+/* Scrollbar styles (optional) */
+.plans-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.plans-container::-webkit-scrollbar-thumb {
+  background-color: #7e57c2;
+  border-radius: 4px;
+}
+
+.plans-container {
+  display: flex;
+  overflow-x: auto; /* Enable horizontal scrolling */
+  gap: 20px; /* Add space between cards */
+
+  scroll-snap-type: x mandatory; /* Snap scrolling */
+}
+
+.plans-container {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+}

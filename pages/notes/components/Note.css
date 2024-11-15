@@ -1,0 +1,19 @@
+/* Custom Scrollbar styles */
+.noteScroll.grid {
+  /* Apply to the container with the grid */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #7367f0 transparent; /* Firefox */
+}
+
+.noteScroll.grid::-webkit-scrollbar {
+  width: 6px; /* Set width of the scrollbar */
+}
+
+.noteScroll.grid::-webkit-scrollbar-thumb {
+  background-color: #7367f0; /* Scrollbar thumb color */
+  border-radius: 10px; /* Optional: rounded corners for the thumb */
+}
+
+.noteScroll.grid::-webkit-scrollbar-track {
+  background-color: transparent; /* Make track transparent or any color */
+}
