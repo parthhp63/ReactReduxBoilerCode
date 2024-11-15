@@ -18,6 +18,7 @@ export const store = configureStore({
     fontFamily: fontFamilyReducer,
     user: userReducer,
     tab: tabReducer,
+   email: emailReducer,
     note: noteReducer,
   },
 })
