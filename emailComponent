@@ -1,0 +1,51 @@
+import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { loadEmails, addEmail, removeEmail } from "../redux/actions/emailActions";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, Button, Input, Badge } from "@your/shadcn/ui";
+
+export default function MailDialog({ mailBox, setMailBox, allUsers }) {
+  const dispatch = useDispatch();
+  const emailList = useSelector((state) => state.email.emailList);
+  const [inputValue, setInputValue] = useState("");
+
+  useEffect(() => {
+    dispatch(loadEmails());
+  }, [dispatch]);
+
+  const handleAddEmail = () => {
+    if (inputValue.trim()) {
+      dispatch(addEmail(inputValue.trim()));
+      setInputValue("");
+    }
+  };
+
+  const handleRemoveEmail = (email) => {
+    dispatch(removeEmail(email));
+  };
+
+  return (
+    <Dialog open={mailBox} onOpenChange={() => setMailBox(false)}>
+      <DialogContent className="p-6 max-w-sm w-full">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold mb-4 text-center">Send Email</DialogTitle>
+        </DialogHeader>
+        <div>
+          <Input
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="Add email"
+            className="mb-2"
+          />
+          <Button onClick={handleAddEmail}>Add Email</Button>
+        </div>
+        <div className="mt-4">
+          {emailList.map((email) => (
+            <Badge key={email} onClick={() => handleRemoveEmail(email)} className="mr-2 cursor-pointer">
+              {email}
+            </Badge>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
