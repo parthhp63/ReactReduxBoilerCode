@@ -1,0 +1,281 @@
+Folder Structure
+plaintext
+Copy code
+src/
+├── App.js
+├── components/
+│   ├── Login.js
+│   ├── Register.js
+│   ├── Dashboard.js
+│   └── ProtectedRoute.js
+├── features/
+│   └── authSlice.js
+├── store.js
+└── index.js
+Setting Up Redux
+store.js
+javascript
+Copy code
+import { configureStore } from "@reduxjs/toolkit";
+import authReducer from "./features/authSlice";
+
+const store = configureStore({
+  reducer: {
+    auth: authReducer,
+  },
+});
+
+export default store;
+authSlice.js
+javascript
+Copy code
+import { createSlice } from "@reduxjs/toolkit";
+
+const initialState = {
+  isAuthenticated: false,
+};
+
+const authSlice = createSlice({
+  name: "auth",
+  initialState,
+  reducers: {
+    login: (state) => {
+      state.isAuthenticated = true;
+    },
+    logout: (state) => {
+      state.isAuthenticated = false;
+    },
+  },
+});
+
+export const { login, logout } = authSlice.actions;
+export default authSlice.reducer;
+React Components
+App.js
+jsx
+Copy code
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import Login from "./components/Login";
+import Register from "./components/Register";
+import Dashboard from "./components/Dashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+const App = () => {
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Router>
+  );
+};
+
+export default App;
+Login.js
+jsx
+Copy code
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { login } from "../features/authSlice";
+import { TextField, Button, Typography, Box } from "@mui/material";
+
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (email === "admin@example.com" && password === "password") {
+      dispatch(login());
+      navigate("/dashboard");
+    } else {
+      alert("Invalid credentials!");
+    }
+  };
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+      }}
+    >
+      <Typography variant="h4" sx={{ mb: 2 }}>
+        Login
+      </Typography>
+      <form onSubmit={handleSubmit} style={{ width: "300px" }}>
+        <TextField
+          fullWidth
+          label="Email"
+          type="email"
+          variant="outlined"
+          sx={{ mb: 2 }}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <TextField
+          fullWidth
+          label="Password"
+          type="password"
+          variant="outlined"
+          sx={{ mb: 2 }}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <Button type="submit" variant="contained" color="primary" fullWidth>
+          Login
+        </Button>
+      </form>
+      <Typography sx={{ mt: 2 }}>
+        Don't have an account? <a href="/register">Register</a>
+      </Typography>
+    </Box>
+  );
+};
+
+export default Login;
+Register.js
+jsx
+Copy code
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { TextField, Button, Typography, Box } from "@mui/material";
+
+const Register = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Registration logic (placeholder)
+    alert("Registration successful!");
+    navigate("/login");
+  };
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+      }}
+    >
+      <Typography variant="h4" sx={{ mb: 2 }}>
+        Register
+      </Typography>
+      <form onSubmit={handleSubmit} style={{ width: "300px" }}>
+        <TextField
+          fullWidth
+          label="Email"
+          type="email"
+          variant="outlined"
+          sx={{ mb: 2 }}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <TextField
+          fullWidth
+          label="Password"
+          type="password"
+          variant="outlined"
+          sx={{ mb: 2 }}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <Button type="submit" variant="contained" color="primary" fullWidth>
+          Register
+        </Button>
+      </form>
+      <Typography sx={{ mt: 2 }}>
+        Already have an account? <a href="/login">Login</a>
+      </Typography>
+    </Box>
+  );
+};
+
+export default Register;
+Dashboard.js
+jsx
+Copy code
+import React from "react";
+import { useDispatch } from "react-redux";
+import { logout } from "../features/authSlice";
+import { Button, Typography, Box } from "@mui/material";
+
+const Dashboard = () => {
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout());
+  };
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        minHeight: "100vh",
+        justifyContent: "center",
+      }}
+    >
+      <Typography variant="h4" sx={{ mb: 2 }}>
+        Welcome to the Dashboard!
+      </Typography>
+      <Button variant="contained" color="secondary" onClick={handleLogout}>
+        Logout
+      </Button>
+    </Box>
+  );
+};
+
+export default Dashboard;
+ProtectedRoute.js
+jsx
+Copy code
+import React from "react";
+import { Navigate } from "react-router-dom";
+
+const ProtectedRoute = ({ isAuthenticated, children }) => {
+  return isAuthenticated ? children : <Navigate to="/login" />;
+};
+
+export default ProtectedRoute;
+index.js
+jsx
+Copy code
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { Provider } from "react-redux";
+import store from "./store";
+import App from "./App";
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
+  <Provider store={store}>
+    <App />
+  </Provider>
+);
