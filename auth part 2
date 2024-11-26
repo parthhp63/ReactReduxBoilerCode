@@ -1,0 +1,314 @@
+red Packages
+
+bash
+Copy code
+npx create-react-app auth-protected-routes
+cd auth-protected-routes
+npm install react-router-dom redux react-redux @reduxjs/toolkit axios formik yup
+Folder Structure
+
+css
+Copy code
+src/
+├── components/
+│   ├── LoginPage.jsx
+│   ├── RegisterPage.jsx
+│   ├── ProtectedRoute.jsx
+│   └── PublicRoute.jsx
+├── redux/
+│   ├── store.js
+│   ├── actions/
+│   │   └── authActions.js
+│   ├── reducers/
+│   │   └── authReducer.js
+├── services/
+│   └── api.js
+├── App.js
+├── index.js
+└── utils/
+    └── validationSchema.js
+2. API Setup
+Create a file src/services/api.js for API requests:
+
+javascript
+Copy code
+import axios from 'axios';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+export const login = (email, password) =>
+  axios.post(`${API_URL}/login`, { email, password });
+
+export const register = (userData) =>
+  axios.post(`${API_URL}/register`, userData);
+3. Redux Store
+Store Configuration (src/redux/store.js):
+javascript
+Copy code
+import { configureStore } from '@reduxjs/toolkit';
+import authReducer from './reducers/authReducer';
+
+const store = configureStore({
+  reducer: {
+    auth: authReducer,
+  },
+});
+
+export default store;
+Auth Reducer (src/redux/reducers/authReducer.js):
+javascript
+Copy code
+import { createSlice } from '@reduxjs/toolkit';
+
+const initialState = {
+  user: JSON.parse(localStorage.getItem('user')) || null,
+  token: localStorage.getItem('token') || null,
+  isAuthenticated: !!localStorage.getItem('user'),
+  status: 'idle',
+  error: null,
+};
+
+const authSlice = createSlice({
+  name: 'auth',
+  initialState,
+  reducers: {
+    loginRequest: (state) => {
+      state.status = 'loading';
+    },
+    loginSuccess: (state, action) => {
+      state.status = 'succeeded';
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.isAuthenticated = true;
+      localStorage.setItem('user', JSON.stringify(action.payload.user));
+      localStorage.setItem('token', action.payload.token);
+    },
+    loginFail: (state, action) => {
+      state.status = 'failed';
+      state.error = action.payload;
+    },
+    logout: (state) => {
+      state.user = null;
+      state.token = null;
+      state.isAuthenticated = false;
+      localStorage.clear();
+    },
+  },
+});
+
+export const { loginRequest, loginSuccess, loginFail, logout } = authSlice.actions;
+
+export default authSlice.reducer;
+Auth Actions (src/redux/actions/authActions.js):
+javascript
+Copy code
+import { loginRequest, loginSuccess, loginFail, logout } from '../reducers/authReducer';
+import { login, register } from '../../services/api';
+
+export const loginAsync = (userData) => async (dispatch) => {
+  try {
+    dispatch(loginRequest());
+    const { data } = await login(userData.email, userData.password);
+    dispatch(loginSuccess(data));
+  } catch (error) {
+    dispatch(loginFail(error.response?.data?.message || 'Login failed'));
+  }
+};
+
+export const registerAsync = (userData) => async (dispatch) => {
+  try {
+    await register(userData);
+  } catch (error) {
+    throw error.response?.data?.message || 'Registration failed';
+  }
+};
+4. Route Protection
+ProtectedRoute Component (src/components/ProtectedRoute.jsx):
+javascript
+Copy code
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+
+const ProtectedRoute = ({ children }) => {
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+
+  return isAuthenticated ? children : <Navigate to="/login" />;
+};
+
+export default ProtectedRoute;
+PublicRoute Component (src/components/PublicRoute.jsx):
+javascript
+Copy code
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+
+const PublicRoute = ({ children }) => {
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+
+  return isAuthenticated ? <Navigate to="/dashboard" /> : children;
+};
+
+export default PublicRoute;
+5. Login and Register Pages
+Login Page (src/components/LoginPage.jsx):
+javascript
+Copy code
+import React from 'react';
+import { Formik, Form, Field } from 'formik';
+import { useDispatch } from 'react-redux';
+import { loginAsync } from '../redux/actions/authActions';
+import { loginSchema } from '../utils/validationSchema';
+
+const LoginPage = () => {
+  const dispatch = useDispatch();
+
+  const handleSubmit = (values) => {
+    dispatch(loginAsync(values));
+  };
+
+  return (
+    <Formik
+      initialValues={{ email: '', password: '' }}
+      validationSchema={loginSchema}
+      onSubmit={handleSubmit}
+    >
+      {({ errors, touched }) => (
+        <Form>
+          <Field name="email" placeholder="Email" />
+          {errors.email && touched.email && <div>{errors.email}</div>}
+
+          <Field name="password" type="password" placeholder="Password" />
+          {errors.password && touched.password && <div>{errors.password}</div>}
+
+          <button type="submit">Login</button>
+        </Form>
+      )}
+    </Formik>
+  );
+};
+
+export default LoginPage;
+Register Page (src/components/RegisterPage.jsx):
+javascript
+Copy code
+import React from 'react';
+import { Formik, Form, Field } from 'formik';
+import { registerAsync } from '../redux/actions/authActions';
+import { registerSchema } from '../utils/validationSchema';
+
+const RegisterPage = () => {
+  const handleSubmit = async (values) => {
+    try {
+      await registerAsync(values);
+      alert('Registration successful');
+    } catch (error) {
+      alert(error);
+    }
+  };
+
+  return (
+    <Formik
+      initialValues={{ email: '', password: '', confirmPassword: '' }}
+      validationSchema={registerSchema}
+      onSubmit={handleSubmit}
+    >
+      {({ errors, touched }) => (
+        <Form>
+          <Field name="email" placeholder="Email" />
+          {errors.email && touched.email && <div>{errors.email}</div>}
+
+          <Field name="password" type="password" placeholder="Password" />
+          {errors.password && touched.password && <div>{errors.password}</div>}
+
+          <Field
+            name="confirmPassword"
+            type="password"
+            placeholder="Confirm Password"
+          />
+          {errors.confirmPassword && touched.confirmPassword && (
+            <div>{errors.confirmPassword}</div>
+          )}
+
+          <button type="submit">Register</button>
+        </Form>
+      )}
+    </Formik>
+  );
+};
+
+export default RegisterPage;
+6. Validation Schema
+Validation Schema (src/utils/validationSchema.js):
+javascript
+Copy code
+import * as Yup from 'yup';
+
+export const loginSchema = Yup.object().shape({
+  email: Yup.string().email('Invalid email').required('Required'),
+  password: Yup.string().min(6, 'Too Short!').required('Required'),
+});
+
+export const registerSchema = Yup.object().shape({
+  email: Yup.string().email('Invalid email').required('Required'),
+  password: Yup.string().min(6, 'Too Short!').required('Required'),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref('password'), null], 'Passwords must match')
+    .required('Required'),
+});
+7. App and Routes
+App Component (src/App.js):
+javascript
+Copy code
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LoginPage from './components/LoginPage';
+import RegisterPage from './components/RegisterPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
+
+const Dashboard = () => <h1>Dashboard</h1>;
+
+const App = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <RegisterPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Router>
+  );
+};
+
+export default App;
+8. Final Steps
+Add .env file for REACT_APP_API_URL.
+Run the app: npm start.
+This setup includes:
+
+Authentication using Redux and local storage.
+Protected and public routes with role-based redirection.
+Form validation using Formik and Yup.
